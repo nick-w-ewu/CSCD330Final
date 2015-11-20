@@ -1,3 +1,5 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,33 +9,61 @@ public class ChatServer
 
 	public static void main(String[] args)
 	{
-		int port = 1236;
-		Client[] clients = new Client[3];
+		int port = 1237;
+		Socket client;
+		String name;
+		Client player1 = null;
+		Client player2 = null;
 		
 		try
 		{
 			ServerSocket server = new ServerSocket(port);
-			PrintWriter error;
-			Socket client = server.accept();
-			ServerThread sender = new ServerThread(client, 0, clients);
-			int location;
-			addClient(clients, client, sender, 0);
+			PrintWriter send;
+			BufferedReader recive;
 
 			while(true)
 			{
 				try
 				{
 					client = server.accept();
-					location = findSlot(clients);
-					if(location != -1)
+					send = new PrintWriter(client.getOutputStream());
+					recive = new BufferedReader
+							(new InputStreamReader(client.getInputStream()));
+					send.println("Please enter a player name:");
+					name = recive.readLine();
+					if(player1 == null || player1.checkConnected() == false)
 					{
-						sender = new ServerThread(client, location, clients);
-						addClient(clients, client, sender, location);
+						player1 = new Client(client, name);
+						if(player2 != null && player1.checkConnected() && player2.checkConnected())
+						{
+							player1.setOpponent(player2);
+							player2.setOpponent(player1);
+							player1.start();
+							player2.start();
+						}
+						else
+						{
+							send.println("waiting for an opponent");
+						}
+					}
+					else if(player2 == null || player1.checkConnected() == false)
+					{
+						player2 = new Client(client, name);
+						if(player1 !=null && player1.checkConnected() && player2.checkConnected())
+						{
+							player1.setOpponent(player2);
+							player2.setOpponent(player1);
+							player1.start();
+							player2.start();
+						}
+						else
+						{
+							send.println("waiting for an opponent");
+						}
 					}
 					else
 					{
-						error = new PrintWriter(client.getOutputStream(), true);
-						error.println("Server Full");
+						send.println("Server Full");
 						client.close();
 					}
 
@@ -49,24 +79,6 @@ public class ChatServer
 			System.out.println("Server failure");
 
 		}
-	}
-
-	private synchronized static int findSlot(Client[] clients)
-	{
-		for(int i = 0; i < clients.length; i++)
-		{
-			if(clients[i] == null || clients[i].checkConnected() == false)
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	private synchronized static void addClient(Client[] clients, Socket client, ServerThread sender, int i)
-	{
-		clients[i] = new Client(client, sender);
-		sender.start();
 	}
 
 }
