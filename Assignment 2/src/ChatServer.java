@@ -9,7 +9,7 @@ public class ChatServer
 
 	public static void main(String[] args)
 	{
-		int port = 1237;
+		int port = 1238;
 		Socket client;
 		String name;
 		Client player1 = null;
@@ -26,7 +26,7 @@ public class ChatServer
 				try
 				{
 					client = server.accept();
-					send = new PrintWriter(client.getOutputStream());
+					send = new PrintWriter(client.getOutputStream(), true);
 					recive = new BufferedReader
 							(new InputStreamReader(client.getInputStream()));
 					send.println("Please enter a player name:");

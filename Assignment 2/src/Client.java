@@ -10,7 +10,7 @@ public class Client extends Thread
 {
 	private Socket socket;
 	private boolean connected;
-	private String name;
+	private String playerId;
 	private String move;
 	private Client opponent;
 	private boolean inGame;
@@ -25,9 +25,10 @@ public class Client extends Thread
 		this.socket = socket;
 		this.connected = true;
 		this.isStored = false;
+		this.playerId = name;
 		try
 		{
-			this.send = new PrintWriter(this.socket.getOutputStream());
+			this.send = new PrintWriter(this.socket.getOutputStream(), true);
 		}
 		catch (IOException e)
 		{
@@ -80,6 +81,11 @@ public class Client extends Thread
 		send.println(message);
 	}
 	
+	public String getPlayerId()
+	{
+		return this.playerId;
+	}
+	
 	public void run()
 	{
 		try
@@ -101,20 +107,21 @@ public class Client extends Thread
 			
 			moveStored();
 			String myMove = getMove();
+			send.println("Waiting for opponent to enter move");
 			
 			while(!opponent.isMoveStored())
 			{
-				send.println("Waiting for opponent to enter move");
+				
 			}
 			String opponentMove = this.opponent.getMove();
 			String combinedMoves = myMove + " " + opponentMove;
 			if(this.iWin.contains(combinedMoves))
 			{
-				send.println("Player: " + this.name + " wins this match");
+				send.println("Player: " + this.playerId + " wins this match");
 			}
 			else if(opponentWins.contains(combinedMoves))
 			{
-				send.println("Player: " + opponent.getName() + " wins this match");
+				send.println("Player: " + opponent.getPlayerId() + " wins this match");
 			}
 			else
 			{
