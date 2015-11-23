@@ -61,6 +61,16 @@ public class ChatServer
 							send.println("waiting for an opponent");
 						}
 					}
+					else if(player1 != null && player2 != null && !player1.getInGame() && !player2.getInGame())
+					{
+						if(player1.checkConnected() && player2.checkConnected())
+						{
+							player1.setOpponent(player2);
+							player2.setOpponent(player1);
+							player1.start();
+							player2.start();
+						}
+					}
 					else
 					{
 						send.println("Server Full");

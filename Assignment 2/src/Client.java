@@ -46,6 +46,16 @@ public class Client extends Thread
 		this.opponentWins.add("P S");
 	}
 	
+	public synchronized void setInGame(boolean b)
+	{
+		this.inGame = b;
+	}
+	
+	public synchronized boolean getInGame()
+	{
+		return this.inGame;
+	}
+	
 	public synchronized void setConnected(boolean set)
 	{
 		this.connected = set;
@@ -56,7 +66,7 @@ public class Client extends Thread
 		this.opponent = o;
 	}
 	
-	public boolean checkConnected()
+	public synchronized boolean checkConnected()
 	{
 		return this.connected;
 	}
@@ -126,6 +136,23 @@ public class Client extends Thread
 			else
 			{
 				send.println("Match was a draw");
+			}
+			
+			send.println("Would you like to play again? Y or N");
+			String playAgain = recive.readLine();
+			while(!playAgain.equalsIgnoreCase("t") && !playAgain.equalsIgnoreCase("f") )
+			{
+				playAgain = recive.readLine();
+			}
+			if(playAgain.equalsIgnoreCase("t"))
+			{
+				setConnected(true);
+				setInGame(false);
+			}
+			else
+			{
+				setConnected(false);
+				setInGame(false);
 			}
 		} 
 		catch (Exception e)
