@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -11,9 +12,11 @@ public class ChatServer
 	{
 		int port = 1238;
 		Socket client;
-		String name;
+		String name, gameType;
 		Client player1 = null;
 		Client player2 = null;
+		Client2 player01 = null;
+		Client2 player02 = null;
 		
 		try
 		{
@@ -31,6 +34,7 @@ public class ChatServer
 							(new InputStreamReader(client.getInputStream()));
 					send.println("Please enter a player name:");
 					name = recive.readLine();
+					gameType = getGameType(send, recive);
 					if(player1 == null || player1.checkConnected() == false)
 					{
 						player1 = new Client(client, name);
@@ -88,6 +92,25 @@ public class ChatServer
 		{
 			System.out.println("Server failure");
 
+		}
+	}
+
+	private static String getGameType(PrintWriter send, BufferedReader recive)
+	{
+		
+		try
+		{
+			send.println("Please choose a game type, the options are Rock-Paper-Scissors and Max Number");
+			String gameType = recive.readLine();
+			while(!gameType.equalsIgnoreCase("Rock-Paper-Scissors") || !gameType.equalsIgnoreCase("Max Number"))
+			{
+				send.println("Please choose a game type, the options are Rock-Paper-Scissors and Max Number");
+				gameType = recive.readLine();
+			}
+			return gameType;
+		} catch (IOException e)
+		{
+			return null;
 		}
 	}
 
