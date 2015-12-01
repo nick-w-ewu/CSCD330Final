@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class Client2
+public class Client2 extends Thread
 {
 	private Socket socket;
 	private boolean connected;
