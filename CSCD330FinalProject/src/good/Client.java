@@ -21,6 +21,7 @@ public class Client extends Thread
 	private ArrayList<String> iWin;
 	private ArrayList<String> opponentWins;
 	PrintWriter send;
+	BufferedReader recive;
 	
 	public Client(Socket socket, String name)
 	{
@@ -128,13 +129,13 @@ public class Client extends Thread
 		try
 		{
 			this.inGame = true;
-			BufferedReader recive = new BufferedReader
+			this.recive = new BufferedReader
 					(new InputStreamReader(this.socket.getInputStream()));
 			send.println("Please enter a move, R,P, or S:");
 			this.move = recive.readLine();
 			while(!this.move.matches(validMoves))
 			{
-				if(this.move.substring(0, 2).equals("/c"))
+				if(this.move.length() >=2 && this.move.substring(0, 2).equals("/c"))
 				{
 					this.opponent.printMessage(move.substring(3));
 				}
@@ -193,6 +194,7 @@ public class Client extends Thread
 		} 
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			this.connected = false;
 			this.inGame = false;
 			if(opponent != null)

@@ -35,6 +35,7 @@ public class ChatServer
 				{
 					if(player1 != null && player1.checkConnected() && player1.checkRestartRequest())
 					{
+						player1.stop();
 						String tempName = player1.getPlayerId();
 						Socket tempSocket = player1.getSocket();
 						player1 = new Client(tempSocket, tempName);
