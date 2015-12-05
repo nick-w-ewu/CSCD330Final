@@ -1,3 +1,4 @@
+package good;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +14,7 @@ public class Client2 extends Thread
 	private Client2 opponent;
 	private boolean inGame;
 	private boolean isStored;
+	private boolean restart;
 	PrintWriter send;
 	
 	public Client2(Socket socket, String name)
@@ -29,6 +31,11 @@ public class Client2 extends Thread
 		{
 			
 		}
+	}
+	
+	public Socket getSocket()
+	{
+		return this.socket;
 	}
 	
 	public synchronized void setInGame(boolean b)
@@ -60,6 +67,11 @@ public class Client2 extends Thread
 	public synchronized boolean checkConnected()
 	{
 		return this.connected;
+	}
+	
+	public synchronized boolean checkRestartRequest()
+	{
+		return this.restart;
 	}
 	
 	public synchronized int getMove()
@@ -94,15 +106,18 @@ public class Client2 extends Thread
 			this.inGame = true;
 			BufferedReader recive = new BufferedReader
 					(new InputStreamReader(this.socket.getInputStream()));
-			send.println("Please enter a move, R,P, or S:");
 			this.move = getInt(recive);
 			moveStored();
 			int myMove = getMove();
 			send.println("Waiting for opponent to enter move");
 			
-			while(!opponent.isMoveStored())
+			while(!opponent.isMoveStored() && opponent.getInGame())
 			{
 				
+			}
+			if(!opponent.getInGame())
+			{
+				throw new Exception();
 			}
 			int opponentMove = this.opponent.getMove();
 			
@@ -121,19 +136,23 @@ public class Client2 extends Thread
 			
 			send.println("Would you like to play again? Y or N");
 			String playAgain = recive.readLine();
-			while(!playAgain.equalsIgnoreCase("t") && !playAgain.equalsIgnoreCase("f") )
+			while(!playAgain.equalsIgnoreCase("y") && !playAgain.equalsIgnoreCase("n") )
 			{
 				playAgain = recive.readLine();
 			}
-			if(playAgain.equalsIgnoreCase("t"))
+			if(playAgain.equalsIgnoreCase("y"))
 			{
+				send.println("Preparing to play agin");
 				setConnected(true);
 				setInGame(false);
+				this.restart = true;
 			}
 			else
 			{
+				send.println("exiting...");
 				setConnected(false);
 				setInGame(false);
+				this.socket.close();
 			}
 		} 
 		catch (Exception e)
@@ -141,6 +160,7 @@ public class Client2 extends Thread
 			this.connected = false;
 			this.inGame = false;
 			this.opponent.opponentErrored();
+			this.restart = true;
 		} 
 
 	}
@@ -153,11 +173,11 @@ public class Client2 extends Thread
 		{
 			try
 			{
-				System.out.println("Please enter a number");
+				send.println("Please enter a number");
 				temp = read.readLine();
 				if(temp.substring(0, 2).equals("/c"))
 				{
-					this.opponent.printMessage(temp);
+					this.opponent.printMessage(temp.substring(3));
 				}
 				else
 				{
@@ -167,7 +187,7 @@ public class Client2 extends Thread
 			}
 			catch (Exception e)
 			{
-				System.out.println("There was an error with the input please try again.");
+				send.println("There was an error with the input please try again.");
 			}
 		}
 	}

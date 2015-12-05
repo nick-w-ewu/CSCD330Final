@@ -1,3 +1,4 @@
+package good;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +16,7 @@ public class Client extends Thread
 	private Client opponent;
 	private boolean inGame;
 	private boolean isStored;
+	private boolean restart;
 	private String validMoves = "([R,P,S,r,p,s])";
 	private ArrayList<String> iWin;
 	private ArrayList<String> opponentWins;
@@ -26,6 +28,8 @@ public class Client extends Thread
 		this.connected = true;
 		this.isStored = false;
 		this.playerId = name;
+		this.restart = false;
+		
 		try
 		{
 			this.send = new PrintWriter(this.socket.getOutputStream(), true);
@@ -44,6 +48,11 @@ public class Client extends Thread
 		this.opponentWins.add("R P");
 		this.opponentWins.add("S R");
 		this.opponentWins.add("P S");
+	}
+	
+	public Socket getSocket()
+	{
+		return this.socket;
 	}
 	
 	public synchronized void setInGame(boolean b)
@@ -71,6 +80,11 @@ public class Client extends Thread
 		return this.connected;
 	}
 	
+	public synchronized boolean checkRestartRequest()
+	{
+		return this.restart;
+	}
+	
 	public synchronized String getMove()
 	{
 		return this.move;
@@ -96,6 +110,19 @@ public class Client extends Thread
 		return this.playerId;
 	}
 	
+	public synchronized void opponentErrored()
+	{
+		this.inGame = false;
+		this.opponent = null;
+		printMessage("Your opponent experienced an error and disconnected, your game will be restarted with a new opponent shortly.");
+		this.restart = true;
+	}
+	
+	public void beginGame()
+	{
+		this.start();
+	}
+	
 	public void run()
 	{
 		try
@@ -109,7 +136,7 @@ public class Client extends Thread
 			{
 				if(this.move.substring(0, 2).equals("/c"))
 				{
-					this.opponent.printMessage(move);
+					this.opponent.printMessage(move.substring(3));
 				}
 				send.println("Please enter a move, R,P, or S:");
 				this.move = recive.readLine();
@@ -119,9 +146,13 @@ public class Client extends Thread
 			String myMove = getMove();
 			send.println("Waiting for opponent to enter move");
 			
-			while(!opponent.isMoveStored())
+			while(!opponent.isMoveStored() && opponent.getInGame())
 			{
 				
+			}
+			if(!opponent.getInGame())
+			{
+				throw new Exception();
 			}
 			String opponentMove = this.opponent.getMove();
 			String combinedMoves = myMove + " " + opponentMove;
@@ -138,28 +169,38 @@ public class Client extends Thread
 				send.println("Match was a draw");
 			}
 			
-			send.println("Would you like to play again? Y or N");
+			send.println("Would you like to play again? y or n");
 			String playAgain = recive.readLine();
-			while(!playAgain.equalsIgnoreCase("t") && !playAgain.equalsIgnoreCase("f") )
+			while(!playAgain.equals("y") && !playAgain.equals("n") )
 			{
 				playAgain = recive.readLine();
 			}
-			if(playAgain.equalsIgnoreCase("t"))
+			if(playAgain.equals("y"))
 			{
+				send.println("Preparing to play agin");
 				setConnected(true);
 				setInGame(false);
+				this.restart = true;
 			}
 			else
 			{
+				send.println("exiting...");
 				setConnected(false);
 				setInGame(false);
+				this.socket.close();
 			}
+			return;
 		} 
 		catch (Exception e)
 		{
-			
+			this.connected = false;
+			this.inGame = false;
+			if(opponent != null)
+			{
+				this.opponent.opponentErrored();
+			}
 		} 
-
+		return;
 	}
 
 }
