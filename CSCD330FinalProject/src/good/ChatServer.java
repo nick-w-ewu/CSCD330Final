@@ -42,21 +42,26 @@ public class ChatServer
 					}
 					if(player2 != null && player2.checkConnected() && player2.checkRestartRequest())
 					{
+						player2.stop();
 						String tempName = player2.getPlayerId();
 						Socket tempSocket = player2.getSocket();
 						player2 = new Client(tempSocket, tempName);
 					}
 					if(player01 != null && player01.checkConnected() && player01.checkRestartRequest())
 					{
+						player01.stop();
 						String tempName = player01.getPlayerId();
 						Socket tempSocket = player01.getSocket();
 						player01 = new Client2(tempSocket, tempName);
+						player01.setRestarted(true);
 					}
 					if(player02 != null && player02.checkConnected() && player02.checkRestartRequest())
 					{
+						player02.stop();
 						String tempName = player02.getPlayerId();
 						Socket tempSocket = player02.getSocket();
 						player02 = new Client2(tempSocket, tempName);
+						player02.setRestarted(true);
 					}
 					if(player1 != null && player2 != null && !player1.getInGame() && !player2.getInGame())
 					{

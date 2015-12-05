@@ -15,6 +15,7 @@ public class Client2 extends Thread
 	private boolean inGame;
 	private boolean isStored;
 	private boolean restart;
+	private boolean restarted;
 	PrintWriter send;
 	
 	public Client2(Socket socket, String name)
@@ -48,6 +49,11 @@ public class Client2 extends Thread
 		return this.inGame;
 	}
 	
+	public void setRestarted(boolean b)
+	{
+		this.restarted = b;
+	}
+	
 	public synchronized void setConnected(boolean set)
 	{
 		this.connected = set;
@@ -62,6 +68,9 @@ public class Client2 extends Thread
 	{
 		this.inGame = false;
 		this.opponent = null;
+		printMessage("Your opponent experienced an error and disconnected, your game will be restarted with a new opponent shortly.");
+		printMessage("You will need to press enter and then your number when you are reconnected");
+		this.restart = true;
 	}
 	
 	public synchronized boolean checkConnected()
@@ -134,13 +143,13 @@ public class Client2 extends Thread
 				send.println("Match was a draw");
 			}
 			
-			send.println("Would you like to play again? Y or N");
+			send.println("Would you like to play again, press enter and then your choice? y or n");
 			String playAgain = recive.readLine();
-			while(!playAgain.equalsIgnoreCase("y") && !playAgain.equalsIgnoreCase("n") )
+			while(!playAgain.equals("y") && !playAgain.equals("n") )
 			{
 				playAgain = recive.readLine();
 			}
-			if(playAgain.equalsIgnoreCase("y"))
+			if(playAgain.equals("y"))
 			{
 				send.println("Preparing to play agin");
 				setConnected(true);
@@ -159,13 +168,15 @@ public class Client2 extends Thread
 		{
 			this.connected = false;
 			this.inGame = false;
-			this.opponent.opponentErrored();
-			this.restart = true;
+			if(opponent != null)
+			{
+				this.opponent.opponentErrored();
+			}
 		} 
 
 	}
 
-	private int getInt(BufferedReader read)
+	private int getInt(BufferedReader read) throws IOException
 	{
 		int ui;
 		String temp;
@@ -175,7 +186,7 @@ public class Client2 extends Thread
 			{
 				send.println("Please enter a number");
 				temp = read.readLine();
-				if(temp.substring(0, 2).equals("/c"))
+				if(temp.length() >= 2 && temp.substring(0, 2).equals("/c"))
 				{
 					this.opponent.printMessage(temp.substring(3));
 				}
@@ -185,7 +196,7 @@ public class Client2 extends Thread
 					return ui;
 				}
 			}
-			catch (Exception e)
+			catch (NumberFormatException e )
 			{
 				send.println("There was an error with the input please try again.");
 			}

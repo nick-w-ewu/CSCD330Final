@@ -116,12 +116,8 @@ public class Client extends Thread
 		this.inGame = false;
 		this.opponent = null;
 		printMessage("Your opponent experienced an error and disconnected, your game will be restarted with a new opponent shortly.");
+		printMessage("You will need to press enter and then your move when you are reconnected");
 		this.restart = true;
-	}
-	
-	public void beginGame()
-	{
-		this.start();
 	}
 	
 	public void run()
@@ -170,7 +166,7 @@ public class Client extends Thread
 				send.println("Match was a draw");
 			}
 			
-			send.println("Would you like to play again? y or n");
+			send.println("Would you like to play again, press enter and then your choice? y or n");
 			String playAgain = recive.readLine();
 			while(!playAgain.equals("y") && !playAgain.equals("n") )
 			{
